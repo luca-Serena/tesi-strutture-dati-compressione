@@ -1,10 +1,8 @@
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
-public class Node {
+public final class Node {
 
     private final ArrayList<Character> characters = new ArrayList<>();
     private final ArrayList<Boolean> isInFirstHalf = new ArrayList();
@@ -48,11 +46,7 @@ public class Node {
     }
 
     public boolean isLeft(char ch) {
-        if (this.alphabet.indexOf(ch) < this.alphabet.size() / 2) {
-            return true;
-        } else {
-            return false;
-        }
+        return this.alphabet.indexOf(ch) < this.alphabet.size() / 2;
     }
 
     public void setAlphabet(ArrayList<Character> alphabet) {
@@ -75,11 +69,14 @@ public class Node {
         this.isLeftChild = isLeftChild;
     }
 
-    public void createMap(char[] input) {
+        /*inizializza la lista che contiene i caratteri del nodo (characters)
+          inizializza la lista che contiene i valori binari del carattere (isInfFirstHalf)
+         */
+    private void createMap(char[] input) {
         for (char c : input) {
             boolean isLeft = true;
             int index = this.alphabet.indexOf((Character) c);
-            if (index > this.alphabet.size() / 2) {
+            if (index >= this.alphabet.size() / 2) {
                 isLeft = false;
             }
             this.characters.add(c);
@@ -87,7 +84,8 @@ public class Node {
         }
     }
 
-    public void createAlphabet(char[] input) {
+    /*inizializza la lista che tiene traccia dell'alfabeto del nodo*/
+    private void createAlphabet(char[] input) {
         for (char ch : input) {
             boolean found = false;
             for (char alphachar : this.alphabet) {
@@ -103,14 +101,29 @@ public class Node {
         Collections.sort(this.alphabet, (Character ch2, Character ch1) -> ch2.compareTo(ch1));
     }
 
+    /* restituisce il nodo dove si trovano le sequenze del carattere indicato*/
     public Node getLeaf(char ch, Node node) {
-        if (node.left==null && node.right ==null)
+        if (node.left == null && node.right == null) {
             return node;
-        boolean isLeft = false;
+        }
         if (node.isLeft(ch)) {
             return (getLeaf(ch, node.left));
         } else {
             return getLeaf(ch, node.right);
         }
+    }
+
+    /*restituisce la sequenza di valori binari che rappresentano la stringa del nodo*/
+    @Override
+    public String toString() {
+        String result = "";
+        for (boolean b : this.getIsInFirstHalf()) {
+            if (b == false) {
+                result += " " + 1;
+            } else {
+                result += " " + 0;
+            }
+        }
+        return result;
     }
 }

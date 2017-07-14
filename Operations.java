@@ -25,7 +25,7 @@ public class Operations {
 
     public static void main(String[] args) {
         Wavelet_Tree tree = createTree();
-        rank(tree.getRoot());
-
+       rank(tree.getRoot());
+       
     }
 }
