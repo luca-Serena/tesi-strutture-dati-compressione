@@ -27,25 +27,36 @@ public class Wavelet_Tree {
     public void setInput(String input) {
         this.input = input;
     }
-   
-      public static int select (Node node,  int occurrence, char ch){
-            return select (occurrence,node.getLeaf(ch, node) );
-      }
-      
-      private static int select(int occurrence, Node node ) {
-        if (node.getParent() == null ) {
-            return occurrence;
+
+    public static int select(Node node, int occurrence, char ch) {
+        Node n = node.getLeaf(ch, node);
+        boolean b = node.isLeft(ch);
+        if (occurrence < 1 || occurrence > n.getIsInFirstHalf().size() || n.getParent() == null) {
+            return -2;
         }
-        int counter=0;
+        return select(occurrence, n.getParent(), b);
+    }
+
+    private static int select(int occurrence, Node node, boolean isLeftInRoot) {
+        int counter = 0;
         int index;
-        for ( index =0; (counter<occurrence) && index<node.getIsInFirstHalf().size() ; index++){
-            if (Objects.equals(node.getIsLeftChild(), node.getIsInFirstHalf().get(index)))
-                counter++;
+        if (node.getParent() == null) {
+            for (index = 0; counter < occurrence; index++) {
+                if (isLeftInRoot == node.getIsInFirstHalf().get(index)) {
+                    counter++;
+                }
+            }
+            return index-1;   //perché l'indice aumenta dopo l'esecuzione di istruzioni nel for
         }
-        return select(index,node.getParent());
-        
-    } 
-      
+        for (index = 0; counter < occurrence; index++) {
+            if (Objects.equals(node.getIsLeftChild(), node.getIsInFirstHalf().get(index))) {
+                counter++;
+            }
+        }
+        return select(index, node.getParent(), isLeftInRoot);
+
+    }
+
     public static int rank(Node node, int index, char character) {
         if (node.getLeft() == null && node.getRight() == null) {
             return index + 1;

@@ -119,9 +119,9 @@ public final class Node {
         String result = "";
         for (boolean b : this.getIsInFirstHalf()) {
             if (b == false) {
-                result += " " + 1;
+                result += 1;
             } else {
-                result += " " + 0;
+                result += 0;
             }
         }
         return result;
