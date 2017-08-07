@@ -1,3 +1,8 @@
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.util.ArrayList;
+import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 
 /**
@@ -7,31 +12,71 @@ import javax.swing.JFrame;
 public class JTree extends javax.swing.JFrame {
 
     String input;
-    Node root;
-
-    public JTree(String input, Node node) {
-        setInput(input);
-        root = node;
-        initComponents();
-    }
+    PanelNode root;
+    ArrayList<Character> alphabet = new ArrayList();
 
     public JTree() {
         initComponents();
     }
 
     private void setInput(String input) {
+        if (root != null) {
+            removeTree(root);
+        }
         this.input = input;
-        Wavelet_Tree tree = new Wavelet_Tree(input);
-        root = tree.getRoot();
+        root = new PanelNode();
+        alphabet = root.createAlphabet(input.toCharArray());
+        root.createTree(input, root, alphabet);
         comboChar.removeAllItems();
         comboIndex.removeAllItems();
-        inputLabel.setText("<html> " + input + "<br/> " + root.toString() + "</html> ");
-        root.getAlphabet().forEach((ch) -> {
+        drawTree(root, 0, 700, null);
+        repaint();
+        alphabet.forEach((ch) -> {
             comboChar.addItem(ch.toString());
         });
-        for (Integer i = 0; i < input.length(); i++) {
+        for (Integer i = 1; i < input.length(); i++) {
             comboIndex.addItem(i.toString());
         }
+    }
+
+    private void removeTree(PanelNode n) {
+        this.remove(n);
+        if (n.getLeft() != null) {
+            removeTree(n.getLeft());
+        }
+        if (n.getRight() != null) {
+            removeTree(n.getRight());
+        }
+    }
+
+    private void drawTree(PanelNode node, int times, int xPos, Boolean isLeft) {
+        //PanelNode yourPanel = new PanelNode(); // create your JPanel
+        node.jl.setText(node.toString());
+        node.setLayout(null); // set the layout null for this JPanel !
+        this.add(node);
+        //  nl = new NodeLabel(n); // create some stuff
+        int leng = node.toString().length() * 10 + 10;
+        node.jl.setBounds(0, 0, 100, 50); // set your position of your elements inside your JPanel
+        node.setBorder(BorderFactory.createLineBorder(Color.black)); // set a testing border to help you position the elements better
+        if (times > 0) {
+            int x = isLeft ? xPos - leng / 2 : xPos - leng / 2;
+            int y = 20 + 100 * times;
+            node.setBounds(x, y, leng, 50);
+        } else { // set the location of the JPanel
+            node.setBounds(xPos - leng / 2, 20, leng, 50);
+        }
+        if (node.getLeft() != null) {
+            int leftPos = (xPos > 700) ? xPos - (200 - 50 * times) : xPos - (200 - 50 * times);
+            // System.out.println("times " + times + " left x " + leftPos);
+            drawTree(node.getLeft(), times + 1, leftPos, true);
+        }
+        if (node.getRight() != null) {
+            int rightPos = (xPos > 700) ? xPos + (200 - 50 * times) : xPos + (200 - 50 * times);
+            //   System.out.println("times " + times + " right x " + rightPos);
+            drawTree(node.getRight(), times + 1, rightPos, false);
+        }
+
+        // this.setLayout(null);
     }
 
     /**
@@ -43,44 +88,16 @@ public class JTree extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        treePanel = new javax.swing.JPanel();
-        inputLabel = new javax.swing.JLabel();
-        outputLabel = new javax.swing.JLabel();
         opCombo = new javax.swing.JComboBox<>();
-        comboChar = new javax.swing.JComboBox<>();
         comboIndex = new javax.swing.JComboBox<>();
         buttonPerform = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         inputTextArea = new javax.swing.JTextArea();
         jButton1 = new javax.swing.JButton();
+        outputLabel = new javax.swing.JLabel();
+        comboChar = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        inputLabel.setBackground(new java.awt.Color(255, 204, 153));
-        inputLabel.setFont(new java.awt.Font("Courier New", 0, 20)); // NOI18N
-        inputLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        inputLabel.setText("Insert commands");
-
-        javax.swing.GroupLayout treePanelLayout = new javax.swing.GroupLayout(treePanel);
-        treePanel.setLayout(treePanelLayout);
-        treePanelLayout.setHorizontalGroup(
-            treePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(treePanelLayout.createSequentialGroup()
-                .addGap(29, 29, 29)
-                .addGroup(treePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(inputLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)
-                    .addComponent(outputLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(29, Short.MAX_VALUE))
-        );
-        treePanelLayout.setVerticalGroup(
-            treePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(treePanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(inputLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(44, 44, 44)
-                .addComponent(outputLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(80, Short.MAX_VALUE))
-        );
 
         opCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "select", "rank", " " }));
         opCombo.addActionListener(new java.awt.event.ActionListener() {
@@ -112,64 +129,60 @@ public class JTree extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(35, 35, 35)
-                .addComponent(treePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jScrollPane1)
-                        .addContainerGap())
+                        .addContainerGap()
+                        .addComponent(comboIndex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(71, 71, 71)
+                        .addComponent(comboChar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(45, 45, 45)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(70, 70, 70)
+                        .addGap(53, 53, 53)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(comboIndex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(buttonPerform, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(47, 47, 47))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(opCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(26, 106, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(comboChar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE))))))
+                            .addComponent(buttonPerform, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(opCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 971, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(24, 24, 24)))
+                .addGap(29, 29, 29))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(outputLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 267, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addGap(17, 17, 17)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton1)
-                        .addGap(38, 38, 38)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap(29, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
                         .addComponent(opCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(27, 27, 27)
-                        .addComponent(comboChar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(buttonPerform, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(comboIndex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addGap(42, 42, 42)
-                        .addComponent(treePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(49, Short.MAX_VALUE))
+                        .addGap(17, 17, 17)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(comboChar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(comboIndex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton1)
+                        .addGap(582, 582, 582))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(21, 21, 21)
+                        .addComponent(buttonPerform, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(outputLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void opComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_opComboActionPerformed
-        // TODO add your handling code here:
+
     }//GEN-LAST:event_opComboActionPerformed
 
     private void buttonPerformActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPerformActionPerformed
@@ -178,25 +191,58 @@ public class JTree extends javax.swing.JFrame {
         char ch = strChar.charAt(0);
         String operation = (String) opCombo.getSelectedItem();
         int result;
+        if (root != null) {
+            removeTree(root);
+        }
+        drawTree(root, 0, 700, null);
+        paint(this.getGraphics());
         if (operation.equals("rank")) {
-            result = Wavelet_Tree.rank(root, i, ch);
+            result = root.rank(root, i, ch, alphabet);
             outputLabel.setText("There are " + result + " occurrences of " + ch + " until index " + i);
         } else {
-            result = Wavelet_Tree.select(root, i, ch);
-            if (result < 0) {
+            result = root.select(root, ch, i, alphabet);
+            if (result <= 0) {
                 outputLabel.setText("There aren't " + i + " occurrences of " + ch);
             } else {
-                outputLabel.setText("The occurrence number " + i + " of " + ch + " is at index " + result);
+                outputLabel.setText("The occurrence number " + i + " of " + ch + " is in position " + result);
             }
         }
+        repaint();
     }//GEN-LAST:event_buttonPerformActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         setInput(inputTextArea.getText());
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    public static void main(String[] args) {
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+        if (root != null) {
+            drawLines(g, root);
+        }
+    }
+ 
+    /*Drawing the lines between the nodes and then two small lines for making an arrow*/
+    public void drawLines(Graphics g, PanelNode p) {
+        int leng = (p.toString().length() * 10 + 30) / 2;
+        if (p.getLeft() != null) {
+            int lengLeft = (p.getLeft().toString().length() * 10 + 30) / 2;
+            g.drawLine(p.getX() + leng, p.getY() + 30, p.getLeft().getX() + lengLeft, p.getLeft().getY() + 30);
+            g.drawLine(p.getLeft().getX() + lengLeft, p.getLeft().getY() + 30, p.getLeft().getX() + lengLeft + 20, p.getLeft().getY() + 25);
+            g.drawLine(p.getLeft().getX() + lengLeft, p.getLeft().getY() + 30, p.getLeft().getX() + lengLeft + 5, p.getLeft().getY() + 10);
+            drawLines(g, p.getLeft());
+        }
+        if (p.getRight() != null) {
+            int lengRight = (p.getRight().toString().length() * 10 + 30) / 2;
+            g.drawLine(p.getX() + leng, p.getY() + 30, p.getRight().getX() + lengRight, p.getRight().getY() + 30);
+            g.drawLine(p.getRight().getX() + lengRight, p.getRight().getY() + 30, p.getRight().getX() + lengRight - 20, p.getRight().getY() + 25);
+            g.drawLine(p.getRight().getX() + lengRight, p.getRight().getY() + 30, p.getRight().getX() + lengRight - 5, p.getRight().getY() + 10);
+            drawLines(g, p.getRight());
+        }
 
+    }
+
+    public static void main(String[] args) {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
             JTree frame = new JTree();
@@ -208,12 +254,10 @@ public class JTree extends javax.swing.JFrame {
     private javax.swing.JButton buttonPerform;
     private javax.swing.JComboBox<String> comboChar;
     private javax.swing.JComboBox<String> comboIndex;
-    private javax.swing.JLabel inputLabel;
     private javax.swing.JTextArea inputTextArea;
     private javax.swing.JButton jButton1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JComboBox<String> opCombo;
     private javax.swing.JLabel outputLabel;
-    private javax.swing.JPanel treePanel;
     // End of variables declaration//GEN-END:variables
 }
