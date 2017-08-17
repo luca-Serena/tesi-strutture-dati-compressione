@@ -7,7 +7,7 @@ public final class Node <T extends BitRankSelect> {
 
     private T isInFirstHalf;                                                    //sequenza di bit
     private Node parent, left, right;                                           
-    private final char chRight;                                                 //primo carattere dell'alfabeto da rappresentare con 1
+    private final char chRight;                                                 //ultimo carattere dell'alfabeto da rappresentare con 0
 
     public Node(char chRight) {
         this.chRight = chRight;
