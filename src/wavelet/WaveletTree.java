@@ -63,14 +63,7 @@ public final class WaveletTree<T extends BitRankSelect> {
     public static char median(char[] input) {
         ArrayList<Character> alphabet = new ArrayList();
         for (char ch : input) {
-            boolean found = false;
-            for (char alphachar : alphabet) {
-                if (alphachar == ch) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
+            if (!alphabet.contains(ch)) {
                 alphabet.add(ch);
             }
         }
