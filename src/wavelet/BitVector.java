@@ -7,9 +7,10 @@ public class BitVector implements BitRankSelect {
     ArrayList<Boolean> vector;
 
     @Override
-    public int select(boolean isZero, int occurrance) {
-        if (occurrance < 0 || occurrance > vector.size())
-            return -1;
+    public int select(boolean isZero, int occurrance) throws IndexOutOfBoundsException {
+        if (occurrance < 0 || occurrance > vector.size()) {
+            throw new IndexOutOfBoundsException("Index out of bounds");
+        }
         int counter = 0, position = 0;
         for (boolean b : vector) {
             if (counter < occurrance) {
@@ -30,9 +31,12 @@ public class BitVector implements BitRankSelect {
     }
 
     @Override
-    public int rank(boolean isZero, int index) {
-        if (index < 0 || index >= vector.size())
+    public int rank(boolean isZero, int index) throws IndexOutOfBoundsException {
+        if (index >= vector.size()) {
+            throw new IndexOutOfBoundsException("Index out of bounds");
+        } else if (index < 0) {
             return -1;
+        }
         int counter = -1;
         for (int i = 0; i <= index; i++) {
             if (vector.get(i) == isZero) {
@@ -54,8 +58,20 @@ public class BitVector implements BitRankSelect {
     }
 
     @Override
-    public Boolean getBit(int index) {
-        if (index >= vector.size() || index < 0) {
+    public boolean isLeaf() {
+        boolean res = true;
+        for (Object b : this.vector) {
+            if (b.equals(Boolean.TRUE)) {
+                res = false;
+                break;
+            }
+        }
+        return res;
+    }
+
+    @Override
+    public Boolean getBit(int index) throws IndexOutOfBoundsException {
+        if (index < 0 || index >= vector.size()) {
             return null;
         }
         return this.vector.get(index);

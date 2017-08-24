@@ -8,4 +8,5 @@ public interface BitRankSelect {
     int select(boolean bit, int occurrance);
     int getSize();
     Boolean getBit(int index);
+    boolean isLeaf();
 }
