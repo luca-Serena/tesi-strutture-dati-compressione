@@ -1,87 +1,37 @@
 package graphic;
 
+import java.awt.Color;
+import java.awt.Graphics;
+import java.lang.reflect.InvocationTargetException;
 import wavelet.*;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public final class PanelNode<T extends BitVector> extends JPanel {
+public final class PanelNode extends WaveletTree<JBitVector> {
 
-    private final T isInSecondHalf;
-    private PanelNode parent;
-    private PanelNode left;
-    private PanelNode right;
-    private char chRight;
+    JPanel panel;
+    JLabel stringLabel = new JLabel();           
     JLabel jl = new JLabel();
 
-    public PanelNode(String input, Class<T> vectorType) {
-        super();
-        jl.setVisible(true);
-        this.add(jl);
+    public PanelNode(String input) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        this.panel = new JPanel();
+        panel.add(stringLabel);
+        stringLabel.setText(input);
+        stringLabel.setBounds(5,-10,100,50);
+        panel.add(jl);
         this.chRight = WaveletTree.median(input.toCharArray());
-        this.isInSecondHalf = createMap(input.toCharArray(), chRight, vectorType);
-        char[] inputChars = input.toCharArray();
+        this.isInSecondHalf = (JBitVector) createMap(input.toCharArray(), chRight, JBitVector.class);
+        String[] inputs = WaveletTree.getConstructorParameters(input, this.chRight);
         if (!this.isInSecondHalf.isLeaf()) {
-            String stringLeft = "", stringRight = "";
-            for (char c : inputChars) {
-                if (c < this.chRight) {
-                    stringLeft += c;
-                } else {
-                    stringRight += c;
-                }
-            }
-
-            PanelNode rightChild = new PanelNode(stringRight, vectorType);
-            this.right = rightChild;
-            rightChild.parent = this;
-            PanelNode leftChild = new PanelNode(stringLeft, vectorType);
-            leftChild.parent = this;
-            this.left = leftChild;
+            right = new PanelNode(inputs[1]);
+            left = new PanelNode(inputs[0]);
         }
     }
 
-    public PanelNode getParent() {
-        return parent;
-    }
-
-    public void setParent(PanelNode parent) {
-        this.parent = parent;
-    }
-
-    public PanelNode getRight() {
-        return right;
-    }
-
-    public void setRight(PanelNode right) {
-        this.right = right;
-    }
-
-    public char getChRight() {
-        return chRight;
-    }
-
-    public void setChRight(char chRight) {
-        this.chRight = chRight;
-    }
-
-    public PanelNode getLeft() {
-        return left;
-    }
-
-    public void setLeft(PanelNode left) {
-        this.left = left;
-    }
-
-    public boolean isLeft(char ch, ArrayList<Character> alphabet) {
-        return alphabet.indexOf(ch) < alphabet.size() / 2;
-    }
-
-    public boolean isLeft(char ch) {
-        return ch < this.chRight;
-    }
 
     static ArrayList<Character> createAlphabet(char[] input) {
         ArrayList<Character> alphabet = new ArrayList();
@@ -102,69 +52,27 @@ public final class PanelNode<T extends BitVector> extends JPanel {
     }
 
     /* dà i valori al vettore di bit (isInSecondtHalf) in base all'alfabeto */
-    private T createMap(char[] input, char ch, Class<T> vectorType) {
-        ArrayList<Boolean> temp = new ArrayList();
-        for (char c : input) {
-            Boolean isLeft = true;
-            if (c >= ch) {
-                isLeft = false;
-            }
-            temp.add(isLeft);
-        }
-        T ret = null;
-        try {
-            ret = (T) vectorType.newInstance().fromArray(temp);
-        } catch (InstantiationException | IllegalAccessException ex) {
-            Logger.getLogger(WaveletTree.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return ret;
+    @Override
+    public int select(char ch, int occurrence) throws CharacterNotFoundException {
+        cleanColors();
+        this.isInSecondHalf.colorBit(occurrence, jl);
+        return super.select(ch, occurrence);
     }
 
-    public int select(char ch, int occurrence) {
-        PanelNode n = this;
-        while (n.right != null) {
-            if (ch >= n.chRight) {
-                n = n.right;
-            } else {
-                n = n.left;
-            }
-        }
-        int position = n.isInSecondHalf.select(false, occurrence);
-        n.colorBit(position - 1);
-        PanelNode child = n;
-        n = n.parent;
-
-        while (n != null) {
-            if (n.left.equals(child)) {
-                position = n.isInSecondHalf.select(true, position);
-                n.colorBit(position - 1);
-            } else {
-                position = n.isInSecondHalf.select(false, position);
-                n.colorBit(position - 1);
-            }
-            n = n.parent;
-            child = child.parent;
-        }
-        return position;
+    @Override
+    public int rank(int index, char character) throws CharacterNotFoundException {
+        cleanColors();
+        this.isInSecondHalf.colorBit(index, jl);
+        return super.rank(index, character);
     }
 
-    public int rank(int index, char character) {
-        if (index >= this.isInSecondHalf.getSize()) {
-            return -1;
-        }
-        this.colorBit(index);
-        if (this.left == null && this.right == null) {
-            return index + 1;
-        }
-        Boolean isLeft = false;
-        if (this.isLeft(character)) {
-            isLeft = true;
-        }
-        int counter = this.isInSecondHalf.rank(isLeft, index);
-        if (isLeft) {
-            return this.left.rank(counter, character);
-        } else {
-            return this.right.rank(counter, character);
+    private void cleanColors() {
+        this.isInSecondHalf.clean(this.jl);
+        if (this.left != null) {
+            PanelNode l = (PanelNode) this.left;
+            l.cleanColors();
+            PanelNode r = (PanelNode) this.left;
+            r.cleanColors();
         }
     }
 
@@ -173,36 +81,63 @@ public final class PanelNode<T extends BitVector> extends JPanel {
         return this.isInSecondHalf.toString();
     }
 
-    public void colorBit(int ind) {
-        if (ind >= this.isInSecondHalf.getSize()) {
-            return;
+    protected void removeTree(JFrame frame) {
+        frame.remove(this.panel);
+        if (this.left != null) {
+            PanelNode l = (PanelNode) this.left;
+            l.removeTree(frame);
         }
-        String text = "<html>";
-        int index;
-        for (index = 0; index < ind; index++) {
-            if (this.isInSecondHalf.getBit(index) == true) {
-                text += "0";
-            } else {
-                text += "1";
-            }
+        if (this.right != null) {
+            PanelNode r = (PanelNode) this.right;
+            r.removeTree(frame);
         }
-        if (this.isInSecondHalf.getBit(ind) != null) {
-            if (this.isInSecondHalf.getBit(ind) == true) {
-                text += "<font color = RED>0</font>";
-            } else {
-                text += "<font color = RED>1</font>";
-            }
+    }
 
-            for (index = index + 1; index < this.isInSecondHalf.getSize(); index++) {
-                if (this.isInSecondHalf.getBit(index) == true) {
-                    text += "0";
-                } else {
-                    text += "1";
-                }
-            }
-            text += "</html>";
-            this.jl.setText(text + "r");
+    protected void drawTree(JFrame frame, int times, int xPos, Boolean isLeft) {
+        //PanelNode yourPanel = new PanelNode(); // create your JPanel
+        this.jl.setText(this.toString());
+        this.panel.setLayout(null); // set the layout null for this JPanel !
+        frame.add(this.panel);
+        //  nl = new NodeLabel(n); // create some stuff
+        int leng = toString().length() * 10 + 10;
+        this.jl.setBounds(5, 10, 100, 50); // set your position of your elements inside your JPanel
+        this.panel.setBorder(BorderFactory.createLineBorder(Color.black)); // set a testing border to help you position the elements better
+        if (times > 0) {
+            int x = isLeft ? xPos - leng / 2 : xPos - leng / 2;
+            int y = 20 + 100 * times;
+            this.panel.setBounds(x, y, leng, 50);
+        } else { // set the location of the JPanel
+            this.panel.setBounds(xPos - leng / 2, 20, leng, 50);
         }
-        repaint();
+        if (this.left != null) {
+            int leftPos = (xPos > 700) ? xPos - (200 - 50 * times) : xPos - (200 - 50 * times);
+            PanelNode l = (PanelNode) this.left;
+            l.drawTree(frame, times + 1, leftPos, true);
+        }
+        if (this.right != null) {
+            int rightPos = (xPos > 700) ? xPos + (200 - 50 * times) : xPos + (200 - 50 * times);
+            PanelNode r = (PanelNode) this.right;
+            r.drawTree(frame, times + 1, rightPos, false);
+        }
+    }
+
+    public void drawLines(Graphics g) {
+        int leng = (this.toString().length() * 10 + 30) / 2;
+        if (this.left != null) {
+            PanelNode l = (PanelNode) this.left;
+            int lengLeft = (l.toString().length() * 10 + 30) / 2;
+            g.drawLine(this.panel.getX() + leng, this.panel.getY() + 80, l.panel.getX() + lengLeft, l.panel.getY() + 30);
+            g.drawLine(l.panel.getX() + lengLeft, l.panel.getY() + 30, l.panel.getX() + lengLeft + 23, l.panel.getY() + 35);
+            g.drawLine(l.panel.getX() + lengLeft, l.panel.getY() + 30, l.panel.getX() + lengLeft + 5, l.panel.getY() + 10);
+            l.drawLines(g);
+        }
+        if (this.right != null) {
+            PanelNode r = (PanelNode) this.right;
+            int lengRight = (this.right.toString().length() * 10 + 30) / 2;
+            g.drawLine(this.panel.getX() + leng, this.panel.getY() + 80, r.panel.getX() + lengRight, r.panel.getY() + 30);
+            g.drawLine(r.panel.getX() + lengRight, r.panel.getY() + 30, r.panel.getX() + lengRight - 23, r.panel.getY() + 35);
+            g.drawLine(r.panel.getX() + lengRight, r.panel.getY() + 30, r.panel.getX() + lengRight - 5, r.panel.getY() + 10);
+            r.drawLines(g);
+        }
     }
 }

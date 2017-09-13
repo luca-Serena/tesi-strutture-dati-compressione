@@ -1,11 +1,12 @@
 package graphic;
 
-import java.awt.Color;
 import java.awt.Graphics;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import javax.swing.BorderFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
-import wavelet.BitVector;
+import wavelet.CharacterNotFoundException;
 
 /**
  *
@@ -21,17 +22,17 @@ public class JTree extends javax.swing.JFrame {
         initComponents();
     }
 
-    private void setInput(String input) {
+    private void setInput(String input) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         if (root != null) {
-            removeTree(root);
+            root.removeTree(this);
         }
         this.alphabet = PanelNode.createAlphabet(input.toCharArray()
         );
         this.input = input;
-        root = new PanelNode(input, BitVector.class);
+        root = new PanelNode(input);
         comboChar.removeAllItems();
         comboIndex.removeAllItems();
-        drawTree(root, 0, 700, null);
+        root.drawTree(this, 0, 700, null);
         repaint();
         alphabet.forEach((ch) -> {
             comboChar.addItem(ch.toString());
@@ -39,46 +40,6 @@ public class JTree extends javax.swing.JFrame {
         for (Integer i = 1; i < input.length(); i++) {
             comboIndex.addItem(i.toString());
         }
-    }
-
-    private void removeTree(PanelNode n) {
-        this.remove(n);
-        if (n.getLeft() != null) {
-            removeTree(n.getLeft());
-        }
-        if (n.getRight() != null) {
-            removeTree(n.getRight());
-        }
-    }
-
-    private void drawTree(PanelNode node, int times, int xPos, Boolean isLeft) {
-        //PanelNode yourPanel = new PanelNode(); // create your JPanel
-        node.jl.setText(node.toString());
-        node.setLayout(null); // set the layout null for this JPanel !
-        this.add(node);
-        //  nl = new NodeLabel(n); // create some stuff
-        int leng = node.toString().length() * 10 + 10;
-        node.jl.setBounds(0, 0, 100, 50); // set your position of your elements inside your JPanel
-        node.setBorder(BorderFactory.createLineBorder(Color.black)); // set a testing border to help you position the elements better
-        if (times > 0) {
-            int x = isLeft ? xPos - leng / 2 : xPos - leng / 2;
-            int y = 20 + 100 * times;
-            node.setBounds(x, y, leng, 50);
-        } else { // set the location of the JPanel
-            node.setBounds(xPos - leng / 2, 20, leng, 50);
-        }
-        if (node.getLeft() != null) {
-            int leftPos = (xPos > 700) ? xPos - (200 - 50 * times) : xPos - (200 - 50 * times);
-            // System.out.println("times " + times + " left x " + leftPos);
-            drawTree(node.getLeft(), times + 1, leftPos, true);
-        }
-        if (node.getRight() != null) {
-            int rightPos = (xPos > 700) ? xPos + (200 - 50 * times) : xPos + (200 - 50 * times);
-            //   System.out.println("times " + times + " right x " + rightPos);
-            drawTree(node.getRight(), times + 1, rightPos, false);
-        }
-
-        // this.setLayout(null);
     }
 
     /**
@@ -194,55 +155,47 @@ public class JTree extends javax.swing.JFrame {
         String operation = (String) opCombo.getSelectedItem();
         int result;
         if (root != null) {
-            removeTree(root);
+            root.removeTree(this);
         }
-        drawTree(root, 0, 700, null);
+        root.drawTree(this, 0, 700, null);
         paint(this.getGraphics());
-        if (operation.equals("rank")) {
-            result = root.rank(i, ch);
-            outputLabel.setText("There are " + result + " occurrences of " + ch + " until index " + i);
-        } else {
-            result = root.select( ch, i);
-            if (result <= 0) {
-                outputLabel.setText("There aren't " + i + " occurrences of " + ch);
+        try {
+            if (operation.equals("rank")) {
+                result = root.rank(i, ch);
+                outputLabel.setText("There are " + result + " occurrences of " + ch + " until index " + i);
+
             } else {
-                outputLabel.setText("The occurrence number " + i + " of " + ch + " is in position " + result);
+                result = root.select(ch, i);
+                if (result <= 0) {
+                    outputLabel.setText("There aren't " + i + " occurrences of " + ch);
+                } else {
+                    outputLabel.setText("The occurrence number " + i + " of " + ch + " is in position " + result);
+                }
             }
+        } catch (CharacterNotFoundException ex) {
+            Logger.getLogger(JTree.class.getName()).log(Level.SEVERE, null, ex);
         }
         repaint();
     }//GEN-LAST:event_buttonPerformActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        setInput(inputTextArea.getText());
+        try {
+            setInput(inputTextArea.getText());
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
+            Logger.getLogger(JTree.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     @Override
     public void paint(Graphics g) {
         super.paint(g);
         if (root != null) {
-            drawLines(g, root);
+            root.drawLines(g);
         }
     }
 
     /*Drawing the lines between the nodes and then two small lines for making an arrow*/
-    public void drawLines(Graphics g, PanelNode p) {
-        int leng = (p.toString().length() * 10 + 30) / 2;
-        if (p.getLeft() != null) {
-            int lengLeft = (p.getLeft().toString().length() * 10 + 30) / 2;
-            g.drawLine(p.getX() + leng, p.getY() + 30, p.getLeft().getX() + lengLeft, p.getLeft().getY() + 30);
-            g.drawLine(p.getLeft().getX() + lengLeft, p.getLeft().getY() + 30, p.getLeft().getX() + lengLeft + 20, p.getLeft().getY() + 25);
-            g.drawLine(p.getLeft().getX() + lengLeft, p.getLeft().getY() + 30, p.getLeft().getX() + lengLeft + 5, p.getLeft().getY() + 10);
-            drawLines(g, p.getLeft());
-        }
-        if (p.getRight() != null) {
-            int lengRight = (p.getRight().toString().length() * 10 + 30) / 2;
-            g.drawLine(p.getX() + leng, p.getY() + 30, p.getRight().getX() + lengRight, p.getRight().getY() + 30);
-            g.drawLine(p.getRight().getX() + lengRight, p.getRight().getY() + 30, p.getRight().getX() + lengRight - 20, p.getRight().getY() + 25);
-            g.drawLine(p.getRight().getX() + lengRight, p.getRight().getY() + 30, p.getRight().getX() + lengRight - 5, p.getRight().getY() + 10);
-            drawLines(g, p.getRight());
-        }
-
-    }
+    
 
     public static void main(String[] args) {
         /* Create and display the form */

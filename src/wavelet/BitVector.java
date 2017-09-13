@@ -4,12 +4,12 @@ import java.util.ArrayList;
 
 public class BitVector implements BitRankSelect {
 
-    ArrayList<Boolean> vector;
+    public ArrayList<Boolean> vector;
 
     @Override
     public int select(boolean isZero, int occurrance) throws IndexOutOfBoundsException {
         if (occurrance < 0 || occurrance > vector.size()) {
-            throw new IndexOutOfBoundsException("Index out of bounds");
+            throw new IndexOutOfBoundsException ("Index out of bounds");
         }
         int counter = 0, position = 0;
         for (boolean b : vector) {
@@ -34,9 +34,9 @@ public class BitVector implements BitRankSelect {
     public int rank(boolean isZero, int index) throws IndexOutOfBoundsException {
         if (index >= vector.size()) {
             throw new IndexOutOfBoundsException("Index out of bounds");
-        } else if (index < 0) {
-            return -1;
         }
+        else if (index <0)
+            return -1;
         int counter = -1;
         for (int i = 0; i <= index; i++) {
             if (vector.get(i) == isZero) {

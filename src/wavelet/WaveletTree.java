@@ -2,46 +2,41 @@ package wavelet;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public final class WaveletTree<T extends BitRankSelect> {
+public class WaveletTree<T extends BitRankSelect> {
 
-    private final T isInSecondHalf;                                              //sequenza di bit
-    private WaveletTree parent, left, right;
-    private final char chRight;                                                 //primo carattere dell'alfabeto da rappresentare con 1
+    protected T isInSecondHalf;                                              //sequenza di bit
+    protected WaveletTree left, right;
+    protected char chRight;                                                 //primo carattere dell'alfabeto da rappresentare con 1
+
+    public WaveletTree() {
+    }
 
     /*Costruttore per il solo nodo radice, che costruisce tutto l'albero*/
-    public WaveletTree(String input, Class<T> vectorType) {
+    public WaveletTree(String input, Class<T> vectorType) throws InstantiationException, IllegalAccessException {
         this.chRight = median(input.toCharArray());
-        this.isInSecondHalf = createMap(input.toCharArray(), chRight, vectorType);
-        char[] inputChars = input.toCharArray();
+        this.isInSecondHalf = (T) createMap(input.toCharArray(), chRight, vectorType);
         if (!this.isInSecondHalf.isLeaf()) {
-            String stringLeft = "", stringRight = "";
-            for (char c : inputChars) {
-                if (c < this.chRight) {
-                    stringLeft += c;
-                } else {
-                    stringRight += c;
-                }
-            }
-
-            WaveletTree rightChild = new WaveletTree(stringRight, vectorType);
-            this.right = rightChild;
-            rightChild.parent = this;
-            WaveletTree leftChild = new WaveletTree(stringLeft, vectorType);
-            leftChild.parent = this;
-            this.left = leftChild;
+            String[] inputs = getConstructorParameters(input, this.chRight);
+            right = new WaveletTree(inputs[1], vectorType);
+            left = new WaveletTree(inputs[0], vectorType);
         }
     }
 
-    public boolean isLeft(char ch) {
+    private boolean isLeft(char ch) {
         return ch < this.chRight;
     }
 
+    private WaveletTree child(char ch) {
+        if (isLeft(ch)) {
+            return this.left;
+        } else {
+            return this.right;
+        }
+    }
 
-    /* dà i valori al vettore di bit (isInSecondtHalf) in base all'alfabeto */ 
-    private T createMap(char[] input, char ch, Class<T> vectorType) {
+    //dà i valori al vettore di bit (isInSecondtHalf) in base all'alfabeto 
+    protected static BitRankSelect createMap(char[] input, char ch, Class vectorType) throws InstantiationException, IllegalAccessException {
         ArrayList<Boolean> temp = new ArrayList();
         for (char c : input) {
             Boolean isLeft = true;
@@ -50,13 +45,7 @@ public final class WaveletTree<T extends BitRankSelect> {
             }
             temp.add(isLeft);
         }
-        T ret = null;
-        try {
-            ret = (T) vectorType.newInstance().fromArray(temp);
-        } catch (InstantiationException | IllegalAccessException ex) {
-            Logger.getLogger(WaveletTree.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return ret;
+        return ((BitRankSelect) vectorType.newInstance()).fromArray(temp);
     }
 
     /*restituisce il primo carattere che si trova nella seconda metà dell'alfabeto del nodo*/
@@ -73,38 +62,34 @@ public final class WaveletTree<T extends BitRankSelect> {
 
     /*retorna la posizione (indice + 1) della occorrenza numero occurrence di ch*/
     public int select(char ch, int occurrence) throws CharacterNotFoundException {
-        WaveletTree n = this;
-        while (n.right != null) {                                               //alla fine del while n sarà la foglia con i caratteri ch
-            if (ch >= n.chRight) {
-                n = n.right;
-            } else {
-                n = n.left;
+        if (this.right != null) {
+            int i = child(ch).select(ch, occurrence);
+            return isInSecondHalf.select(isLeft(ch), i);
+        } else {
+            if (ch != this.chRight) {                                                    // in questo caso significa che ch non esiste nell'albero
+                throw new CharacterNotFoundException();
             }
+            return occurrence;
         }
-        if (ch != n.chRight) {                                                    // in questo caso significa che ch non esiste nell'albero
-            throw new CharacterNotFoundException();
-        } 
-        return n.selectFromLeafToRoot(occurrence);
     }
 
-    private int selectFromLeafToRoot(int occurrence) {
-        WaveletTree n = this;
-        n = n.parent;
-
-        if (n != null) {
-            int position;
-            if (n.left.equals(this)) {
-                position = n.isInSecondHalf.select(true, occurrence);
+    protected static String[] getConstructorParameters(String input, char chRight) {
+        String[] res = new String[2];
+        char[] inputChars = input.toCharArray();
+        res[0] = "";
+        res[1] = "";
+        for (char c : inputChars) {
+            if (c < chRight) {
+                res[0] += c;
             } else {
-                position = n.isInSecondHalf.select(false, occurrence);
+                res[1] += c;
             }
-            return n.selectFromLeafToRoot(position);
         }
-        return occurrence;
+        return res;
     }
 
     /*ritorna quante occorrenze di character ci sono fino all'indice index*/
-    public int rank(int index, char character) throws CharacterNotFoundException, IndexOutOfBoundsException{
+    public int rank(int index, char character) throws CharacterNotFoundException, IndexOutOfBoundsException {
         if (index >= this.isInSecondHalf.getSize()) {
             throw new IndexOutOfBoundsException("Index out of bounds");
         }
@@ -112,16 +97,12 @@ public final class WaveletTree<T extends BitRankSelect> {
         if (this.left == null && this.right == null) {
             if (character == this.chRight) {
                 return index + 1;
-            } else {                                                             
+            } else {
                 throw new CharacterNotFoundException();
             }
         }
 
         int counter = this.isInSecondHalf.rank(isLeft(character), index);
-        if (isLeft(character)) {
-            return this.left.rank(counter, character);
-        } else {
-            return this.right.rank(counter, character);
-        }
+        return child(character).rank(counter, character);
     }
 }
