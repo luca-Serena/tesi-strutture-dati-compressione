@@ -13,9 +13,9 @@ import javax.swing.JPanel;
 
 public final class PanelNode extends WaveletTree<JBitVector> {
 
-    JPanel panel;
-    JLabel stringLabel = new JLabel();           
-    JLabel jl = new JLabel();
+    private final JPanel panel;
+    private final JLabel stringLabel = new JLabel();           
+    private final JLabel jl = new JLabel();
 
     public PanelNode(String input) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         this.panel = new JPanel();
@@ -33,7 +33,7 @@ public final class PanelNode extends WaveletTree<JBitVector> {
     }
 
 
-    static ArrayList<Character> createAlphabet(char[] input) {
+    static ArrayList<Character> getAlphabet(char[] input) {
         ArrayList<Character> alphabet = new ArrayList();
         for (char ch : input) {
             boolean found = false;
@@ -121,7 +121,7 @@ public final class PanelNode extends WaveletTree<JBitVector> {
         }
     }
 
-    public void drawLines(Graphics g) {
+    protected void drawLines(Graphics g) {
         int leng = (this.toString().length() * 10 + 30) / 2;
         if (this.left != null) {
             PanelNode l = (PanelNode) this.left;

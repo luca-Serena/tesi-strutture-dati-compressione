@@ -26,8 +26,7 @@ public class JTree extends javax.swing.JFrame {
         if (root != null) {
             root.removeTree(this);
         }
-        this.alphabet = PanelNode.createAlphabet(input.toCharArray()
-        );
+        this.alphabet = PanelNode.getAlphabet(input.toCharArray() );
         this.input = input;
         root = new PanelNode(input);
         comboChar.removeAllItems();

@@ -9,8 +9,7 @@ import wavelet.BitVector;
  */
 public class JBitVector extends BitVector {
 
-    public void colorBit(int ind, JLabel bitLabel) {
-        System.out.println(" da colorare indice " + ind);
+    protected void colorBit(int ind, JLabel bitLabel) {
         bitLabel.paintImmediately(bitLabel.getVisibleRect());     
         if (ind >= this.vector.size()) {
             return;
@@ -44,7 +43,7 @@ public class JBitVector extends BitVector {
         bitLabel.repaint();
     }
 
-    public void clean(JLabel bitLabel) {
+    protected void clean(JLabel bitLabel) {
         String text = "";
         for (int i = 0; i < this.vector.size(); i++) {
             if (this.vector.get(i) == true) {
