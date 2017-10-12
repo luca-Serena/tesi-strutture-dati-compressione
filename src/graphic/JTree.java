@@ -15,7 +15,7 @@ import wavelet.CharacterNotFoundException;
 public class JTree extends javax.swing.JFrame {
 
     String input;
-    PanelNode root;
+   JWaveletTree root;
     ArrayList<Character> alphabet = new ArrayList();
 
     public JTree() {
@@ -26,9 +26,9 @@ public class JTree extends javax.swing.JFrame {
         if (root != null) {
             root.removeTree(this);
         }
-        this.alphabet = PanelNode.getAlphabet(input.toCharArray() );
+        this.alphabet =JWaveletTree.getAlphabet(input.toCharArray() );
         this.input = input;
-        root = new PanelNode(input);
+        root = new JWaveletTree(input);
         comboChar.removeAllItems();
         comboIndex.removeAllItems();
         root.drawTree(this, 0, 700, null);

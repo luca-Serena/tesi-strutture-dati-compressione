@@ -15,9 +15,9 @@ public class WaveletTree<T extends BitRankSelect> {
     /*Costruttore per il solo nodo radice, che costruisce tutto l'albero*/
     public WaveletTree(String input, Class<T> vectorType) throws InstantiationException, IllegalAccessException {
         this.chRight = median(input.toCharArray());
-        this.isInSecondHalf = (T) createMap(input.toCharArray(), chRight, vectorType);
+        this.isInSecondHalf = (T) createBitRankSelect(input.toCharArray(), chRight, vectorType);
         if (!this.isInSecondHalf.isLeaf()) {
-            String[] inputs = getConstructorParameters(input, this.chRight);
+            String[] inputs = splitByChar(input, this.chRight);
             right = new WaveletTree(inputs[1], vectorType);
             left = new WaveletTree(inputs[0], vectorType);
         }
@@ -36,7 +36,7 @@ public class WaveletTree<T extends BitRankSelect> {
     }
 
     //dà i valori al vettore di bit (isInSecondtHalf) in base all'alfabeto 
-    protected static BitRankSelect createMap(char[] input, char ch, Class vectorType) throws InstantiationException, IllegalAccessException {
+    protected static BitRankSelect createBitRankSelect(char[] input, char ch, Class vectorType) throws InstantiationException, IllegalAccessException {
         ArrayList<Boolean> temp = new ArrayList();
         for (char c : input) {
             Boolean isLeft = true;
@@ -73,7 +73,7 @@ public class WaveletTree<T extends BitRankSelect> {
         }
     }
 
-    protected static String[] getConstructorParameters(String input, char chRight) {
+    protected static String[] splitByChar (String input, char chRight) {
         String[] res = new String[2];
         char[] inputChars = input.toCharArray();
         res[0] = "";
